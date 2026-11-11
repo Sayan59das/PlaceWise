@@ -1,0 +1,8 @@
+# Copy this file to "db.properties" (which Git ignores) and fill in your own values.
+#   Windows:   copy db.properties.example db.properties
+#   Linux/Mac: cp db.properties.example db.properties
+#
+# createDatabaseIfNotExist=true lets MySQL create the "placewise" schema on first connect.
+db.url=jdbc:mysql://localhost:3306/placewise?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+db.user=placewise
+db.password=change-me

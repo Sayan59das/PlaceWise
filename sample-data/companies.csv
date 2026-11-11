@@ -1,0 +1,6 @@
+name,minCgpa,maxBacklogs,allowedBranches,packageLpa,seats
+Acme Technologies,8.00,0,CSE|IT,18.5,3
+Bluepeak Systems,7.50,1,CSE|IT|ECE,12.0,4
+Cedar Analytics,7.00,0,,9.5,5
+Delta Robotics,7.50,2,ECE|ME,11.0,3
+Evergreen Infra,6.50,2,CE|ME,6.5,4

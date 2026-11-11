@@ -1,0 +1,14 @@
+rollNo,name,branch,semester,cgpa,activeBacklogs,email
+CU2601,Good Student One,CSE,6,8.10,0,
+CU2602,Wrong Column Count,CSE,6,8.10
+CU2603,Letters In Cgpa,IT,6,eight,0,
+CU2604,Cgpa Too High,ECE,6,10.50,0,
+CU2601,Duplicate Of First,CSE,6,9.00,0,
+CU2606,,CSE,6,7.00,0,
+CU2607,Semester Nine,ME,9,7.00,0,
+CU2608,"Unclosed Quote,CSE,6,7.00,0,
+CU2609,Negative Backlogs,CE,6,7.00,-1,
+CU2610,Bad Email,CSE,6,7.00,0,not-an-email
+CU2611,Good Student Two,"IT",6,7.25,1,two@example.edu
+CU2612,Huge Exponent,CSE,6,1e999999999,0,
+CU2613,Good Student Three,CSE,4,9.99,0,

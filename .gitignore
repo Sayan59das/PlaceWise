@@ -1,0 +1,24 @@
+# Build output
+target/
+
+# Credentials never go in Git: only db.properties.example is committed.
+db.properties
+
+# Runtime output of the console app (audit log, backups, reports, rejects)
+placewise-data/
+reports/
+rejects.csv
+*.log
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+
+# Output of the scripted demo run (docs/DEMO_SCRIPT.md)
+demo-data/
