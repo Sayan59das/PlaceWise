@@ -1,6 +1,6 @@
 # PlaceWise - Student Placement Eligibility Checker
 
-Java 21 / Maven / plain JDBC console application (course project 25CSE0202, Chitkara University).
+Java 25 / Maven / plain JDBC console application (course project 25CSE0202, Chitkara University).
 
 ```text
 .\mvnw.cmd clean verify                       # build + 467 tests + coverage gate   (Linux/macOS: ./mvnw clean verify)

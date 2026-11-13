@@ -12,9 +12,9 @@
   <description>Student Placement Eligibility Checker (course project 25CSE0202)</description>
 
   <properties>
-    <!-- "release 21" pins the language level and the JDK API surface to Java 21, so the project
-         also builds on any newer JDK (the author's machine runs JDK 27). -->
-    <maven.compiler.release>21</maven.compiler.release>
+    <!-- Compile for Java 25: the code may use Java 25 features, nothing newer.
+         Any JDK 25 or newer can build it (the author's machine runs JDK 27). -->
+    <maven.compiler.release>25</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <junit.version>5.14.4</junit.version>

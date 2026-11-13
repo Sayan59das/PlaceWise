@@ -1,7 +1,7 @@
 # PlaceWise - Test evidence
 
 Every number in this file comes from a real run on the author's machine: Windows 11, **JDK 27** (compiling with
-`--release 21`), Maven 3.9.16 through the wrapper, 28 logical CPUs, H2 2.5 in MySQL mode as the test database.
+`--release 25`), Maven 3.9.16 through the wrapper, 28 logical CPUs, H2 2.5 in MySQL mode as the test database.
 No MySQL server was used (see "Not covered" at the end).
 
 ## 1. Result

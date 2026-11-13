@@ -17,7 +17,7 @@ and goes beyond that with a "why not eligible?" explainer, a what-if simulator, 
 
 | Needed | Notes |
 |---|---|
-| JDK 21 or newer | The build uses `--release 21`, so it also works on newer JDKs (developed on JDK 27). No separate Maven install: the Maven Wrapper (`mvnw`) downloads Maven itself. |
+| JDK 25 or newer | The build uses `--release 25`, so it also works on newer JDKs (developed on JDK 27). No separate Maven install: the Maven Wrapper (`mvnw`) downloads Maven itself. |
 | MySQL 8 *(optional)* | Only for permanent storage. Without it run with `--no-db` (data lives in memory). |
 
 Tests use an in-memory **H2** database in MySQL mode, so `mvnw clean verify` needs nothing but the JDK.
