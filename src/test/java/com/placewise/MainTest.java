@@ -66,7 +66,7 @@ class MainTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"--bogus", "--db", "--data-dir"})
+    @ValueSource(strings = {"--bogus", "--db", "--data-dir", "--port"})
     void badArgumentsPrintUsageAndReturnTwo(String argument) {
         Outcome outcome = run("", argument);
         assertThat(outcome.exitCode()).isEqualTo(2);
@@ -108,6 +108,26 @@ class MainTest {
         assertThat(data.resolve("audit-backup.log")).exists();
         assertThat(Files.readAllBytes(data.resolve("audit-backup.log")))
                 .isEqualTo(Files.readAllBytes(data.resolve("audit.log")));
+    }
+
+    @Test
+    void webModeStartsTheBrowserVersionAndStopsCleanlyWhenTheInputEnds() {
+        Path data = tmp.resolve("data");
+        Outcome outcome = run("\n", "--no-db", "--web", "--port", "0", "--data-dir", data.toString());
+
+        assertThat(outcome.exitCode()).isZero();
+        assertThat(outcome.output()).contains("PlaceWise web version: open http://localhost:")
+                .contains("Web server stopped.").contains("Audit log backed up to")
+                .doesNotContain("===== PlaceWise"); // the terminal menu is not shown in web mode
+        assertThat(data.resolve("audit-backup.log")).exists();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"abc", "-1", "70000"})
+    void aBadPortPrintsUsageAndReturnsTwo(String port) {
+        Outcome outcome = run("", "--no-db", "--web", "--port", port);
+        assertThat(outcome.exitCode()).isEqualTo(2);
+        assertThat(outcome.output()).contains("--port needs a number between 0 and 65535").contains("--web");
     }
 
     @Test

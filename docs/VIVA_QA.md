@@ -140,3 +140,20 @@ students in any input order give the identical list (tested with 100 shuffles), 
 A guarantee that one action's effects are visible to another. We rely on: `Thread.start()` (everything built before `start` is visible
 to the thread, e.g. plans and boards), `join()` (everything a thread wrote is visible after joining it), `synchronized` unlock→lock, and
 `volatile` write→read. This is why the main thread may read final statuses after joining the workers without any extra locking.
+
+## The browser version
+
+**31. How does the browser version work, and why can it never disagree with the terminal?** [`WebServer`, `ApiRoutes`]
+`--web` starts the JDK's built-in HTTP server. The page asks for data with `fetch("/api/...")`; `ApiRoutes` has one small method per
+action that reads the values (`Form`), calls the **same service** the terminal menu calls, and returns plain maps that `Json` writes as text.
+No eligibility rule, ranking or drive logic exists in the web layer or in JavaScript, so the two front-ends cannot give different answers.
+
+**32. Is it safe if the page sends bad input, or another site tries to use the server?** [`WebServer.handleApi`, `Form`, `StaticFiles`]
+Bad input is a normal case: a validator problem becomes status 400 with every broken rule listed, and the page shows it. Numbers are parsed
+by `Form`, which refuses `abc` and `1e999999999` with a message (the same guard as `ConsoleIO`). The server listens on localhost only; a `POST`
+without the page's own header is refused (403), so another website cannot change data; static files match a strict name pattern, so `../` cannot
+escape the web folder; and the page escapes every value before putting it into HTML.
+
+**33. Two clicks at once: can the services be corrupted?** [`WebServer` constructor]
+No. `server.setExecutor(null)` means requests are handled one at a time on the server's single thread. The multithreaded drive still runs its
+own threads, but they are started and joined inside one request, which answers only when they are finished.

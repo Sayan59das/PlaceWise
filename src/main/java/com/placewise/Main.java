@@ -5,12 +5,16 @@ import com.placewise.storage.database.Database;
 import com.placewise.storage.database.DbConfig;
 import com.placewise.ui.ConsoleIO;
 import com.placewise.ui.MainMenu;
+import com.placewise.web.WebServer;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/** Program entry point: chooses the storage, starts the menu, and shuts everything down cleanly. */
+/**
+ * Program entry point: chooses the storage, starts the terminal menu (or, with {@code --web}, the browser
+ * version), and shuts everything down cleanly.
+ */
 public final class Main {
 
     private Main() {
@@ -51,13 +55,19 @@ public final class Main {
             database = openDatabase(options, out);
             try (AppContext app = AppContext.create(database, options.dataDir())) {
                 out.println("PlaceWise - storage: " + app.storageDescription() + "; data folder: " + options.dataDir());
-                new MainMenu(new ConsoleIO(in, out), app).run();
+                if (options.web()) {
+                    WebServer.runUntilEnter(app, options.port(), in, out); // the browser version
+                } else {
+                    new MainMenu(new ConsoleIO(in, out), app).run();      // the terminal version
+                }
                 out.println("Audit log backed up to " + app.backupAudit());
             }
             return 0;
         } catch (PlaceWiseException e) {
             out.println("Cannot continue: " + e.getMessage());
-            out.println("Tip: run with --no-db to try the program without a database.");
+            if (!options.noDb()) {
+                out.println("Tip: run with --no-db to try the program without a database.");
+            }
             return 2;
         } finally {
             if (database != null) {

@@ -32,10 +32,26 @@ java -jar target/placewise.jar --no-db                     # try it without a da
 java -jar target/placewise.jar                             # uses ./db.properties (MySQL) if the file exists
 java -jar target/placewise.jar --db path/to/db.properties  # explicit settings file
 java -jar target/placewise.jar --data-dir mydata           # where audit log, reports, rejects.csv go (default placewise-data)
+java -jar target/placewise.jar --no-db --web               # the browser version instead of the terminal menu
+java -jar target/placewise.jar --no-db --web --port 8081   # same, on another port (default 8080)
 java -jar target/placewise.jar --help
 ```
 
 Keep `target/lib/` next to `target/placewise.jar`; it holds the MySQL driver.
+
+### The browser version (for a live demo on a screen)
+
+`--web` starts a small web server built into the JDK (nothing extra to install) and prints
+`open http://localhost:8080/ in a browser`. Press **Enter** in the terminal to stop it. Without `--web` you get the
+terminal menu exactly as before, so the terminal stays available as the backup if the browser or projector misbehaves.
+
+* The page has the same nine screens as the terminal menu, with the same numbers: press `1`-`9` (and `0` for the
+  overview) to switch screens, or click the rail on the left.
+* It only **displays** what the Java services decide: every eligibility verdict, gap, ranking, drive and report comes from
+  the same classes the terminal uses, so the two can never disagree.
+* It listens on `localhost` only (not on the network), handles one request at a time, and needs no internet: the one
+  font (Patrick Hand SC, SIL Open Font License) is stored in `src/main/resources/web/fonts/`.
+* `--no-db` (data in memory) is the easiest way to demo: the Overview screen offers **Load the sample data** in one click.
 
 ### Using MySQL
 
@@ -112,7 +128,10 @@ src/main/java/com/placewise/
   concurrency/    BoundedQueue<T> (wait/notifyAll), StartGate, ThreadLifecycleDemo
     race/         the race-condition demo: SeatAllocator, UnsafeSeatAllocator, SafeSeatAllocator, RaceDemo
   drive/          the placement drive: PlacementDrive, CompanyBoard, Recruiter, StudentApplicant, ...
+  web/            the browser version (--web): WebServer (JDK HttpServer), ApiRoutes (one method per page action),
+                  JsonViews + Json (objects to JSON), Form (reads what the page sent), StaticFiles
 src/main/resources/schema.sql    same file for MySQL and for H2 (tests)
+src/main/resources/web/          the page: index.html, style.css, js/ (one file per screen), fonts/
 src/test/java/...                tests, in the same folders as the code they test (see TEST_EVIDENCE.md)
 sample-data/                     50 students, 5 companies, a dirty file for the rejects demo
 scripts/                         mysql-setup.sql, loop-concurrency.*, mutation-check.ps1
@@ -158,8 +177,10 @@ Every row points at real code. Search the class name to find it.
 * The `applications` table holds the **latest** drive only; running a new drive on stored data replaces it.
 * Names beginning with `=`, `+`, `-` or `@` are written to exported CSV as they are; a spreadsheet may treat them as formulas.
 * One OS thread per student (capped at 256; with more students each thread submits for several).
+* The browser version is for **one presenter on one computer**: no login, localhost only, one request at a time. Its
+  page was checked in Chrome only, and it is not meant to be put on a network.
 
 ## 8. Extension ideas
 
-Student self-service login, per-company custom rules via the existing `EligibilityRule` interface, a web front-end
-over the same services, application deadlines, offer acceptance rounds, richer reports (charts), connection pooling.
+Student self-service login, per-company custom rules via the existing `EligibilityRule` interface, application
+deadlines, offer acceptance rounds, richer reports (charts), connection pooling.

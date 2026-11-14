@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PlaceWise</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- A tiny J-card as the tab icon: white card, red stripe, on ballpoint blue. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231E3A8A'/%3E%3Crect x='6' y='7' width='20' height='18' rx='2' fill='%23FCFBF7'/%3E%3Cg fill='%23D32F2F'%3E%3Crect x='6' y='16' width='20' height='1.6'/%3E%3Crect x='6' y='18.8' width='20' height='1.6'/%3E%3Crect x='6' y='21.6' width='20' height='1.6'/%3E%3C/g%3E%3C/svg%3E">
+</head>
+<body>
+  <!-- The left rail: the same nine screens as the terminal menu, with the same numbers (press 1-9). -->
+  <nav class="rail" aria-label="Screens">
+    <div class="label">
+      <div class="wordmark">PlaceWise</div>
+      <svg class="stripe" viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true">
+        <rect y="0" width="200" height="3"/><rect y="5.5" width="200" height="3"/><rect y="11" width="200" height="3"/>
+      </svg>
+      <p>Student placement eligibility checker</p>
+    </div>
+    <ul class="nav">
+      <li><a href="#overview"><span class="key"></span>Overview</a></li>
+      <li><a href="#students"><span class="key">1</span>Students</a></li>
+      <li><a href="#companies"><span class="key">2</span>Companies</a></li>
+      <li><a href="#eligibility"><span class="key">3</span>Check eligibility</a></li>
+      <li><a href="#ranked"><span class="key">4</span>Ranked lists</a></li>
+      <li><a href="#why-not"><span class="key">5</span>Why not eligible</a></li>
+      <li><a href="#what-if"><span class="key">6</span>What-if simulator</a></li>
+      <li><a href="#drive"><span class="key">7</span>Placement drive</a></li>
+      <li><a href="#reports"><span class="key">8</span>Reports</a></li>
+      <li><a href="#import"><span class="key">9</span>Import CSV</a></li>
+    </ul>
+    <p class="storage" id="storage"></p>
+  </nav>
+
+  <!-- Each screen draws itself in here (see js/main.js). -->
+  <main id="screen" tabindex="-1"></main>
+
+  <!-- Success and error messages appear here; click to close. -->
+  <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+
+  <!-- Plain scripts, loaded in order: common.js first (the shared helpers), main.js last (it starts the page). -->
+  <script src="js/common.js"></script>
+  <script src="js/overview.js"></script>
+  <script src="js/students.js"></script>
+  <script src="js/companies.js"></script>
+  <script src="js/eligibility.js"></script>
+  <script src="js/ranked.js"></script>
+  <script src="js/insights.js"></script>
+  <script src="js/drive.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/import.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

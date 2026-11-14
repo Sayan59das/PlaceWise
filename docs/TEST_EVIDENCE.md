@@ -8,14 +8,14 @@ No MySQL server was used (see "Not covered" at the end).
 
 ```text
 .\mvnw.cmd clean verify
-Tests run: 467, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 507, Failures: 0, Errors: 0, Skipped: 0
 All coverage checks have been met.
 BUILD SUCCESS          (13 s with an offline Maven cache, including compile, tests, JaCoCo and the jar)
 ```
 
 | Quality gate | Required | Measured | Result |
 |---|---|---|---|
-| All tests | 0 failures | 467 run, 0 failures, 0 errors, 0 skipped | pass |
+| All tests | 0 failures | 507 run, 0 failures, 0 errors, 0 skipped | pass |
 | Line coverage `eligibility` | >= 80% | **100%** (51/51) | pass (enforced in the build) |
 | Line coverage `ranking` | >= 80% | **100%** (35/35) | pass (enforced) |
 | Line coverage `analytics` | >= 80% | **100%** (120/120) | pass (enforced) |
@@ -44,8 +44,9 @@ below 80% the build fails.
 | Reports | `ReportTest` | 10 | exact text and CSV output, empty tables, file-name safety (`../../evil` stays inside the folder) |
 | Services | `ServicesTest` | 18 | CRUD rules, all three eligibility questions with audit lines, filters/top-N/paging, import with exact line numbers in `rejects.csv`, storage failure -> "Nothing was imported", export-all writes every report in both formats (exact CSV content checked), export/re-import |
 | Console UI | `ConsoleIOTest`, `MainMenuTest` | 38 | scripted input with text, blanks, `-1`, `42`, huge numbers and end-of-input; every screen (exporting every report writes 24 files for the 5 sample companies); an error in one screen returns to the main menu |
-| Whole program | `MainTest` | 10 | boots `Main` against H2: import -> eligibility -> **drive on stored data** -> report -> exit, checks the database contents, the audit log, and that **data survives a restart**; `--help`, bad arguments, missing/unreachable database, graceful shutdown with audit backup |
-| **Total** | 26 classes | **467** | |
+| Whole program | `MainTest` | 15 | boots `Main` against H2: import -> eligibility -> **drive on stored data** -> report -> exit, checks the database contents, the audit log, and that **data survives a restart**; `--help`, bad arguments (including a bad `--port`), missing/unreachable database, graceful shutdown with audit backup; `--web` starts the browser version without the terminal menu and stops when the input ends |
+| Web (browser version) | `JsonTest`, `FormTest`, `WebServerTest` | 35 | JSON writing (escaping, `BigDecimal` never in exponent form, nesting); form parsing (`+` and `%xx` decoding, blank = default, `abc` and `1e999999999` refused with a message); **the real server on a free port, in-memory data**: the page and its files are served, `../` paths and non-page files give 404, a POST without the page's header is refused (403) and changes nothing, add/update/delete of students and companies with every validation problem listed, the eligibility, ranked, why-not and what-if answers equal the services' (checked on Tara Menon: `Needs +0.15 CGPA and 1 fewer backlog`), generated and stored drives hold every invariant, the lock never oversells, reports and exports write into the data folder, a CSV with mistakes lists every rejected row with its reason, an uploaded CSV is imported, a taken port fails with a readable message |
+| **Total** | 29 classes | **507** | |
 
 ### Test strategy notes
 
@@ -136,7 +137,7 @@ shared mutable state is either `synchronized`, `volatile`, immutable, or confine
 ## 7. Reproduce everything
 
 ```text
-.\mvnw.cmd clean verify                                             # 467 tests, coverage gate, jar   (Linux/macOS: ./mvnw clean verify)
+.\mvnw.cmd clean verify                                             # 507 tests, coverage gate, jar   (Linux/macOS: ./mvnw clean verify)
 start target\site\jacoco\index.html                                 # coverage report
 .\mvnw.cmd test -Dgroups=concurrency                                # only the concurrency tests
 powershell -ExecutionPolicy Bypass -File scripts\loop-concurrency.ps1 -Runs 30

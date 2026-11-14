@@ -8,6 +8,8 @@ the domain knows nothing about the outside world (no I/O, no database, no thread
 ```mermaid
 flowchart TD
     UI["ui<br/>ConsoleIO, MainMenu, Menu + 8 screens"]
+    WEB["web (--web)<br/>WebServer, ApiRoutes, JsonViews,<br/>Json, Form, StaticFiles"]
+    PAGE["browser page<br/>HTML, CSS, JavaScript"]
     SVC["service<br/>AppContext, Student / Company / Eligibility /<br/>Listing / Import / Report / Drive services"]
     ELIG["eligibility<br/>EligibilityRule, Cgpa/Backlog/BranchRule,<br/>EligibilityChecker"]
     RANK["ranking<br/>StudentRanking, StudentSort"]
@@ -25,6 +27,8 @@ flowchart TD
     AUD["audit<br/>FileAuditLog, AuditBackup"]
 
     UI --> SVC
+    PAGE -->|"HTTP + JSON"| WEB
+    WEB --> SVC
     SVC --> VAL
     SVC --> ELIG
     SVC --> RANK
@@ -48,6 +52,9 @@ flowchart TD
 
 `AppContext` is the composition root: with a `Database` it wires the JDBC repositories, without one the in-memory
 repositories. Nothing above the repository interfaces can tell which one it got.
+
+The terminal menu (`ui`) and the browser version (`web`) are two front-ends over the **same** services: neither contains
+a business rule, so they cannot disagree (section 8).
 
 ## 2. One application inside the placement drive
 
@@ -226,3 +233,32 @@ company). `CHECK` constraints repeat the validation rules in the database as a s
   the tests count opened vs closed connections and require zero left open.
 * SQL errors become `PersistenceException`; a duplicate key (H2 `23505`, MySQL `23000`/1062) becomes
   `DuplicateRollNoException` or `InvalidCompanyException`.
+
+## 8. The web layer (`--web`)
+
+```text
+browser page (src/main/resources/web)            Java (package com.placewise.web)
+  js/*.js  --fetch /api/...  (GET or POST)-->     WebServer   (JDK com.sun.net.httpserver, localhost only)
+                                                    |  /api/*  -> ApiRoutes.handle("GET /api/students", form)
+                                                    |            -> the same services the terminal menu calls
+                                                    |            -> JsonViews turns the answer into maps -> Json writes text
+  <-- JSON  {"students":[...]}                      |  anything else -> StaticFiles (index.html, style.css, js, font)
+```
+
+* **One request at a time.** `setExecutor(null)` makes the server handle each request on its own single thread, in
+  order, so two clicks can never change the (not thread-safe) services at the same moment. The threads of a placement
+  drive still run inside one request and finish before it answers.
+* **`ApiRoutes` is the whole API at a glance:** one `switch` on `"METHOD /path"`, one small method per page action. Each
+  method reads the values with `Form` (the web twin of `ConsoleIO`: it turns text into numbers and says clearly what is
+  wrong), calls a service, and returns plain maps and lists. `GET` only reads; every change is a `POST`.
+* **Errors are values, not crashes.** A `PlaceWiseException` or a bad value becomes status 400 and
+  `{"error": "...", "problems": [...]}` (the validators list *every* broken rule); the page shows it and the user can
+  try again, exactly as the terminal menu prints `Error: ...` and carries on. An unexpected exception becomes a 500 and is
+  logged, never a hung request.
+* **Safe by construction.** It binds to the loopback address only. A `POST` without the page's own `X-PlaceWise`
+  header is refused, so a web page on another site cannot change data behind the user's back. Static files are served
+  only for names matching a strict pattern (`/js/name.js`), so `../` can never leave the web folder. The page puts every
+  value into HTML through one `esc()` helper, so a student named `<b>x</b>` is shown as text. Imports and exports always
+  use fixed names inside the data folder: the page never chooses a path on the computer.
+* **Why no framework.** `Json` is under 100 lines and `Form` about 150: enough for six kinds of value, with no
+  dependency to explain. The page is plain HTML, CSS and JavaScript with no build step.

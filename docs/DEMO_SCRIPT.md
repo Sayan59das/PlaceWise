@@ -25,6 +25,32 @@ Legend: **type** = what you enter, *Enter* = press Enter on an empty line, **say
 
 ---
 
+## Showing it in the browser (screen or projector)
+
+The terminal script below stays the **backup**. For a big screen, start the browser version instead of terminal A:
+
+```text
+java -jar target\placewise.jar --no-db --web        # then open http://localhost:8080/ (Enter in the terminal stops it)
+```
+
+Everything shown comes from the same Java services as the terminal. Keys `1`-`9` switch screens, like the terminal menu.
+Values below are from real runs of the sample data; the drive and race counts depend only on the seed or the luck of the threads.
+
+| Screen | Click | What the audience sees |
+|---|---|---|
+| Overview | **Load the sample data** | 50 students, 5 companies, 19 seats; eligible for at least one company: 39 |
+| 3 Check eligibility | student **CU2520 - Tara Menon** | Side A: Bluepeak Systems. Side B: Acme Technologies `Needs +0.15 CGPA and 1 fewer backlog` with the failed criteria struck through in red |
+| 5 Why not eligible | same student | the exact gap for each of the 4 companies |
+| 6 What-if | drag *CGPA increase* to +0.15 and *Backlogs cleared* to 1 | Acme Technologies and Cedar Analytics move to Side A while the slider moves; the stored record is unchanged |
+| 4 Ranked lists | Acme Technologies, *Per page* 5 | 11 eligible students, ranked, page by page |
+| 7 Placement drive | **Run the drive** (defaults: 200 students, 5 companies, 8 seats, 4 threads, seed 42) | 426 applications, 40 selected, 104 waitlisted, "All invariants hold", and each company's 8 seats as ruled lines with the waitlist pencilled in below |
+| 7 Race condition | **Run both** | without a lock more seats are granted than exist (hatched red); with a lock never |
+| 9 Import CSV | **Students file with mistakes** | 3 of 13 rows imported; the 10 rejected rows listed with line number and reason |
+
+> **If the browser misbehaves**, stop the server (Enter) and carry on with the terminal script below: nothing else changes.
+
+---
+
 ## 0:00 - 1:00  Add data, and bad input does not crash it
 
 **Say:** "Menu-driven console app. First a student, typing mistakes on purpose."

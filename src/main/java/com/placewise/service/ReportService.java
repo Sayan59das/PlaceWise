@@ -1,5 +1,6 @@
 package com.placewise.service;
 
+import com.placewise.analytics.PlacementSummary;
 import com.placewise.analytics.StudentAnalytics;
 import com.placewise.csv.CompanyCsv;
 import com.placewise.csv.StudentCsv;
@@ -80,13 +81,22 @@ public final class ReportService {
     }
 
     /**
-     * Overall placement summary, using the stored results of the latest drive (if any).
+     * The overall placement numbers, using the stored results of the latest drive (if any).
+     *
+     * @return the numbers
+     */
+    public PlacementSummary overallSummary() {
+        return StudentAnalytics.placementSummary(
+                students.listAll(StudentSort.ROLL_NO), companies.listAll(), applications.findAll(), checker);
+    }
+
+    /**
+     * Overall placement summary as a report table.
      *
      * @return the report data
      */
     public Table overallTable() {
-        return ReportBuilder.overallSummary(StudentAnalytics.placementSummary(
-                students.listAll(StudentSort.ROLL_NO), companies.listAll(), applications.findAll(), checker));
+        return ReportBuilder.overallSummary(overallSummary());
     }
 
     /**
