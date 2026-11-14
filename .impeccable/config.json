@@ -1,0 +1,107 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-11-14T08:58:14.713Z",
+        "reason": "model decision: canon card shows the category default on purpose"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-11-14T08:58:14.873Z",
+        "reason": "model decision: throwaway decision-round sketch, not shipping UI"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned-r1.html"
+        ],
+        "createdAt": "2026-11-14T08:58:15.034Z",
+        "reason": "model decision: throwaway decision-round sketch, not shipping UI"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick-r1.html"
+        ],
+        "createdAt": "2026-11-14T08:58:15.186Z",
+        "reason": "model decision: throwaway decision-round sketch, not shipping UI"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick-r1.html"
+        ],
+        "createdAt": "2026-11-14T08:58:15.346Z",
+        "reason": "model decision: throwaway decision-round sketch, not shipping UI"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "src/main/resources/web/index.html"
+        ],
+        "createdAt": "2026-11-14T09:28:40.941Z",
+        "reason": "model decision: the hatch on the oversold part of the race-demo bar carries meaning (oversold reads without colour); it is not decoration"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-11-14T15:42:05.411Z",
+        "reason": "model decision: throwaway decision-round sketch of a rejected direction, git-ignored, never ships; its fonts are meant to differ from DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-11-14T15:42:05.617Z",
+        "reason": "model decision: throwaway decision-round sketch of a rejected direction, git-ignored, never ships; its fonts are meant to differ from DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-11-14T15:42:05.806Z",
+        "reason": "model decision: throwaway decision-round sketch of a rejected direction, git-ignored, never ships; its fonts are meant to differ from DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned-r1.html"
+        ],
+        "createdAt": "2026-11-14T15:42:06.005Z",
+        "reason": "model decision: throwaway decision-round sketch of a rejected direction, git-ignored, never ships; its fonts are meant to differ from DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick-r1.html"
+        ],
+        "createdAt": "2026-11-14T15:42:06.197Z",
+        "reason": "model decision: throwaway decision-round sketch of a rejected direction, git-ignored, never ships; its fonts are meant to differ from DESIGN.md"
+      }
+    ]
+  }
+}

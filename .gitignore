@@ -22,3 +22,9 @@ Thumbs.db
 
 # Output of the scripted demo run (docs/DEMO_SCRIPT.md)
 demo-data/
+
+# Design tool workspace: rejected mock-ups, caches and review screenshots stay local
+.impeccable/mocks/
+.impeccable/hook.cache.json
+.impeccable/review/
+.impeccable/build/
