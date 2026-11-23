@@ -50,18 +50,16 @@ public final class Main {
             out.println(Options.USAGE);
             return 0;
         }
-        Database database = null;
-        try {
-            database = openDatabase(options, out);
-            try (AppContext app = AppContext.create(database, options.dataDir())) {
-                out.println("PlaceWise - storage: " + app.storageDescription() + "; data folder: " + options.dataDir());
-                if (options.web()) {
-                    WebServer.runUntilEnter(app, options.port(), in, out); // the browser version
-                } else {
-                    new MainMenu(new ConsoleIO(in, out), app).run();      // the terminal version
-                }
-                out.println("Audit log backed up to " + app.backupAudit());
+        // try-with-resources closes both at the end, even after an error (a null database is simply skipped)
+        try (Database database = openDatabase(options, out);
+             AppContext app = AppContext.create(database, options.dataDir())) {
+            out.println("PlaceWise - storage: " + app.storageDescription() + "; data folder: " + options.dataDir());
+            if (options.web()) {
+                WebServer.runUntilEnter(app, options.port(), in, out); // the browser version
+            } else {
+                new MainMenu(new ConsoleIO(in, out), app).run();      // the terminal version
             }
+            out.println("Audit log backed up to " + app.backupAudit());
             return 0;
         } catch (PlaceWiseException e) {
             out.println("Cannot continue: " + e.getMessage());
@@ -69,10 +67,6 @@ public final class Main {
                 out.println("Tip: run with --no-db to try the program without a database.");
             }
             return 2;
-        } finally {
-            if (database != null) {
-                database.close(); // also covered by AppContext.close(); closing twice is harmless
-            }
         }
     }
 

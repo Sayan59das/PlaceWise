@@ -78,34 +78,28 @@ public final class PlacementDrive {
      */
     public DriveResult run() {
         long startNanos = System.nanoTime();
-        Map<Long, CompanyBoard> boards = new LinkedHashMap<>();
-        for (Company company : companies) {
-            boards.put(company.id(), new CompanyBoard(company));
-        }
-        List<List<Application>> plans = buildPlans();
-        List<Application> all = new ArrayList<>();
-        for (List<Application> plan : plans) {
-            all.addAll(plan);
-        }
+        Map<Long, CompanyBoard> boards = createBoards();
+        List<List<Application>> plans = buildPlans();   // one list of applications per student thread
+        List<Application> all = flatten(plans);
 
         BoundedQueue<Application> queue = new BoundedQueue<>(config.queueCapacity());
         ProgressCounter progress = new ProgressCounter();
         StartGate gate = new StartGate();
-        List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
-        List<Thread> threads = new ArrayList<>();
+        List<DriveException> failures = Collections.synchronizedList(new ArrayList<>());
+        List<Thread> threads = new ArrayList<>();       // every thread we start, so the finally block can stop them all
         ProgressMonitor monitor = progressOut == null ? null
                 : new ProgressMonitor(progressOut, progress, queue, all.size(), MONITOR_INTERVAL_MILLIS);
         boolean interrupted = false;
         try {
             List<Thread> recruiters = new ArrayList<>();
             for (int i = 1; i <= config.recruiters(); i++) {
-                recruiters.add(newThread(new Recruiter(queue, boards, checker, audit, progress),
-                        "recruiter-" + i, failures, queue));
+                Runnable task = new Recruiter(queue, boards, checker, audit, progress);
+                recruiters.add(newThread(task, "recruiter-" + i, failures, queue));
             }
             List<Thread> applicants = new ArrayList<>();
             for (int i = 0; i < plans.size(); i++) {
-                applicants.add(newThread(new StudentApplicant(plans.get(i), queue, audit, progress, gate),
-                        "student-" + (i + 1), failures, queue));
+                Runnable task = new StudentApplicant(plans.get(i), queue, audit, progress, gate);
+                applicants.add(newThread(task, "student-" + (i + 1), failures, queue));
             }
             threads.addAll(recruiters);
             threads.addAll(applicants);
@@ -114,11 +108,13 @@ public final class PlacementDrive {
             if (monitor != null) {
                 monitor.start();
             }
-            gate.open();                       // "go!": all student threads submit at the same moment
-            joinAll(applicants);               // join(): wait until every producer has finished
-            queue.close();                     // producers are done: tell consumers to drain and stop
+
+            gate.open();                 // "go!": all student threads submit at the same moment
+            joinAll(applicants);         // wait until every producer has finished ...
+            queue.close();               // ... then tell the consumers to drain the queue and stop
             joinAll(recruiters);
             throwIfFailed(failures);
+
             runWithdrawals(boards, failures, queue);
             throwIfFailed(failures);
         } catch (InterruptedException e) {
@@ -132,11 +128,33 @@ public final class PlacementDrive {
                 Thread.currentThread().interrupt();
             }
         }
+        Duration elapsed = Duration.ofNanos(System.nanoTime() - startNanos);
+        return new DriveResult(config, companies, all, snapshotsOf(boards), elapsed);
+    }
+
+    /** One board (one lock, one seat list) per company; the map is never changed after this. */
+    private Map<Long, CompanyBoard> createBoards() {
+        Map<Long, CompanyBoard> boards = new LinkedHashMap<>();
+        for (Company company : companies) {
+            boards.put(company.id(), new CompanyBoard(company));
+        }
+        return boards;
+    }
+
+    private static List<Application> flatten(List<List<Application>> plans) {
+        List<Application> all = new ArrayList<>();
+        for (List<Application> plan : plans) {
+            all.addAll(plan);
+        }
+        return all;
+    }
+
+    private static List<BoardSnapshot> snapshotsOf(Map<Long, CompanyBoard> boards) {
         List<BoardSnapshot> snapshots = new ArrayList<>();
         for (CompanyBoard board : boards.values()) {
             snapshots.add(board.snapshot());
         }
-        return new DriveResult(config, companies, all, snapshots, Duration.ofNanos(System.nanoTime() - startNanos));
+        return snapshots;
     }
 
     /** Decides, with a seeded random generator, which applications each student thread will submit. */
@@ -166,7 +184,7 @@ public final class PlacementDrive {
         return plans;
     }
 
-    private void runWithdrawals(Map<Long, CompanyBoard> boards, List<Throwable> failures,
+    private void runWithdrawals(Map<Long, CompanyBoard> boards, List<DriveException> failures,
                                 BoundedQueue<Application> queue) throws InterruptedException {
         Random random = new Random(config.seed() ^ 0x9E3779B97F4A7C15L);
         List<Application> chosen = new ArrayList<>();
@@ -195,11 +213,11 @@ public final class PlacementDrive {
     }
 
     /** Creates (does not start) a thread whose uncaught exception is recorded and unblocks everyone. */
-    private static Thread newThread(Runnable task, String name, List<Throwable> failures,
+    private static Thread newThread(Runnable task, String name, List<DriveException> failures,
                                     BoundedQueue<Application> queue) {
         Thread thread = new Thread(task, name);
         thread.setUncaughtExceptionHandler((t, error) -> {
-            failures.add(new IllegalStateException("Thread " + t.getName() + " failed", error));
+            failures.add(new DriveException("Thread " + t.getName() + " failed", error));
             queue.close(); // wake any thread blocked on the queue so the whole drive can unwind
         });
         return thread;
@@ -218,33 +236,26 @@ public final class PlacementDrive {
         }
     }
 
-    private static void throwIfFailed(List<Throwable> failures) {
-        synchronized (failures) {
-            if (!failures.isEmpty()) {
-                throw new DriveException(failures.get(0).getMessage(), failures.get(0));
-            }
+    /** Rethrows the first failure a worker thread recorded (the list is synchronized and only ever grows). */
+    private static void throwIfFailed(List<DriveException> failures) {
+        if (!failures.isEmpty()) {
+            throw failures.get(0);
         }
     }
 
     /** Always runs: closes the queue, stops the monitor, and makes sure no worker outlives the drive. */
     private static void shutDown(BoundedQueue<Application> queue, ProgressMonitor monitor, List<Thread> threads) {
         queue.close();
-        boolean interrupted = false;
         try {
             if (monitor != null) {
                 monitor.stop();
             }
             for (Thread thread : threads) {
-                if (thread.isAlive()) { // only on the failure path: normal runs have joined everyone
-                    thread.interrupt();
-                    thread.join();
-                }
+                thread.interrupt(); // a thread that has already finished simply ignores this
+                thread.join();
             }
         } catch (InterruptedException e) {
-            interrupted = true;
-        }
-        if (interrupted) {
-            Thread.currentThread().interrupt();
+            Thread.currentThread().interrupt(); // interrupted again while cleaning up: keep the flag for our caller
         }
     }
 }

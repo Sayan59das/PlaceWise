@@ -70,14 +70,24 @@ public abstract class CsvImporter<T> {
         } catch (IllegalArgumentException e) {
             throw new ImportException("The header line is not valid CSV: " + e.getMessage());
         }
-        boolean same = actual.size() == expectedHeader.size();
-        for (int i = 0; same && i < actual.size(); i++) {
-            same = actual.get(i).trim().toLowerCase(Locale.ROOT).equals(expectedHeader.get(i).toLowerCase(Locale.ROOT));
-        }
-        if (!same) {
+        if (!headerMatches(actual)) {
             throw new ImportException("Unexpected header. Expected: " + String.join(",", expectedHeader)
                     + " but found: " + headerLine.trim());
         }
+    }
+
+    /** True when the file has the same columns in the same order (capital letters and spaces do not matter). */
+    private boolean headerMatches(List<String> actual) {
+        if (actual.size() != expectedHeader.size()) {
+            return false;
+        }
+        for (int i = 0; i < actual.size(); i++) {
+            String found = actual.get(i).trim().toLowerCase(Locale.ROOT);
+            if (!found.equals(expectedHeader.get(i).toLowerCase(Locale.ROOT))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private ImportResult<T> readRows(BufferedReader reader) throws IOException {

@@ -208,34 +208,28 @@ public final class AppContext implements AutoCloseable {
      * Graceful shutdown: closes the audit log, backs it up, then closes the database. Every step runs even
      * if an earlier one fails, so a full disk cannot leave the database handle open.
      *
-     * @throws PlaceWiseException the first failure (later ones are attached as suppressed exceptions)
+     * @throws PlaceWiseException the first failure, if any step failed
      */
     @Override
     public void close() {
-        PlaceWiseException failure = null;
+        PlaceWiseException firstFailure = null;
         try {
             audit.close();
         } catch (PlaceWiseException e) {
-            failure = e;
+            firstFailure = e;
         }
         try {
             backupAudit();
         } catch (PlaceWiseException e) {
-            failure = remember(failure, e);
+            if (firstFailure == null) {
+                firstFailure = e;
+            }
         }
         if (database != null) {
             database.close();
         }
-        if (failure != null) {
-            throw failure;
+        if (firstFailure != null) {
+            throw firstFailure;
         }
-    }
-
-    private static PlaceWiseException remember(PlaceWiseException first, PlaceWiseException later) {
-        if (first == null) {
-            return later;
-        }
-        first.addSuppressed(later);
-        return first;
     }
 }

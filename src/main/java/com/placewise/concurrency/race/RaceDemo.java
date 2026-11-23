@@ -48,24 +48,33 @@ public final class RaceDemo {
         List<Thread> racers = new ArrayList<>();
         for (int t = 0; t < config.threads(); t++) {
             int id = t;
-            Thread racer = new Thread(() -> {
-                try {
-                    gate.awaitOpen(); // everybody starts together, so they really collide
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-                Random random = new Random(config.seed() + id);
-                for (int attempt = 0; attempt < config.attemptsPerThread(); attempt++) {
-                    int company = random.nextInt(config.companies());
-                    if (allocator.tryAllocate(company)) {
-                        grantedByThread[id][company]++;
-                    }
-                }
-            }, "racer-" + (t + 1));
+            Thread racer = new Thread(() -> race(allocator, config, id, gate, grantedByThread[id]), "racer-" + (t + 1));
             racers.add(racer);
             racer.start();
         }
+        openGateAndWait(gate, racers);
+        return addUp(grantedByThread, config.companies());
+    }
+
+    /** What one racer thread does: wait for the start signal, then try to take seats at random companies. */
+    private static void race(SeatAllocator allocator, RaceConfig config, int id, StartGate gate, int[] granted) {
+        try {
+            gate.awaitOpen(); // everybody starts together, so they really collide
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+        Random random = new Random(config.seed() + id);
+        for (int attempt = 0; attempt < config.attemptsPerThread(); attempt++) {
+            int company = random.nextInt(config.companies());
+            if (allocator.tryAllocate(company)) {
+                granted[company]++; // this array belongs to this racer alone, so counting cannot go wrong
+            }
+        }
+    }
+
+    /** Says "go", then waits for every racer; if we are interrupted meanwhile, the racers are interrupted too. */
+    private static void openGateAndWait(StartGate gate, List<Thread> racers) throws InterruptedException {
         try {
             gate.open();
             for (Thread racer : racers) {
@@ -77,9 +86,13 @@ public final class RaceDemo {
             }
             throw e;
         }
-        int[] granted = new int[config.companies()];
+    }
+
+    /** Adds the racers' rows together: seats granted per company (index = company). */
+    private static int[] addUp(int[][] grantedByThread, int companies) {
+        int[] granted = new int[companies];
         for (int[] row : grantedByThread) {
-            for (int c = 0; c < granted.length; c++) {
+            for (int c = 0; c < companies; c++) {
                 granted[c] += row[c];
             }
         }

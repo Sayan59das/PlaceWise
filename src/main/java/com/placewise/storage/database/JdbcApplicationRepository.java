@@ -140,16 +140,8 @@ public final class JdbcApplicationRepository extends JdbcRepositoryBase implemen
         try (Connection connection = connect()) {
             connection.setAutoCommit(false);
             try {
-                try (PreparedStatement clear = connection.prepareStatement("DELETE FROM applications")) {
-                    clear.executeUpdate();
-                }
-                try (PreparedStatement statement = connection.prepareStatement(INSERT)) {
-                    for (Application application : applications) {
-                        fillInsert(statement, application);
-                        statement.addBatch();
-                    }
-                    statement.executeBatch();
-                }
+                deleteAllApplications(connection);
+                insertAll(connection, applications);
                 connection.commit();
             } catch (SQLException e) {
                 rollback(connection, e);
@@ -159,6 +151,22 @@ public final class JdbcApplicationRepository extends JdbcRepositoryBase implemen
             }
         } catch (SQLException e) {
             throw failure("Transaction rolled back", e);
+        }
+    }
+
+    private static void deleteAllApplications(Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("DELETE FROM applications")) {
+            statement.executeUpdate();
+        }
+    }
+
+    private static void insertAll(Connection connection, List<Application> applications) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(INSERT)) {
+            for (Application application : applications) {
+                fillInsert(statement, application);
+                statement.addBatch();
+            }
+            statement.executeBatch();
         }
     }
 

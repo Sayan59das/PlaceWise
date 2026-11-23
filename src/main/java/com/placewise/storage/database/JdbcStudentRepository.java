@@ -44,12 +44,7 @@ public final class JdbcStudentRepository extends JdbcRepositoryBase implements S
     /** Saves many students in ONE transaction: either every student is saved, or none is. */
     @Override
     public void saveAll(List<Student> students) {
-        Set<String> seen = new HashSet<>();
-        for (Student student : students) {
-            if (!seen.add(student.rollNo())) {
-                throw new DuplicateRollNoException(student.rollNo());
-            }
-        }
+        rejectRepeatedRolls(students);
         try (Connection connection = connect()) {
             connection.setAutoCommit(false);     // start the transaction
             try (PreparedStatement statement = connection.prepareStatement(INSERT)) {
@@ -71,6 +66,16 @@ public final class JdbcStudentRepository extends JdbcRepositoryBase implements S
                 throw new DuplicateRollNoException(firstExistingRoll(students), failure("Duplicate roll number", e));
             }
             throw failure("Transaction rolled back", e);
+        }
+    }
+
+    /** The same roll number twice in one batch is refused before anything is sent to the database. */
+    private static void rejectRepeatedRolls(List<Student> students) {
+        Set<String> seen = new HashSet<>();
+        for (Student student : students) {
+            if (!seen.add(student.rollNo())) { // add() returns false when the roll number was already in the set
+                throw new DuplicateRollNoException(student.rollNo());
+            }
         }
     }
 

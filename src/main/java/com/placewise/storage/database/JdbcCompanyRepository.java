@@ -59,23 +59,12 @@ public final class JdbcCompanyRepository extends JdbcRepositoryBase implements C
         try (Connection connection = connect()) {
             connection.setAutoCommit(false);
             try {
-                int rows;
-                try (PreparedStatement statement = connection.prepareStatement(UPDATE)) {
-                    fillCompany(statement, company);
-                    statement.setLong(6, company.id());
-                    rows = statement.executeUpdate();
-                }
-                if (rows == 0) {
+                if (updateCompanyRow(connection, company) == 0) {
                     connection.rollback();
                     return false; // no company with that id
                 }
-                // Replace the branch rows: delete the old ones, insert the new ones.
-                try (PreparedStatement statement =
-                             connection.prepareStatement("DELETE FROM company_branches WHERE company_id = ?")) {
-                    statement.setLong(1, company.id());
-                    statement.executeUpdate();
-                }
-                insertBranches(connection, company.id(), company.allowedBranches());
+                deleteBranches(connection, company.id());                            // replace the branch rows:
+                insertBranches(connection, company.id(), company.allowedBranches()); // old ones out, new ones in
                 connection.commit();
                 return true;
             } catch (SQLException e) {
@@ -102,17 +91,7 @@ public final class JdbcCompanyRepository extends JdbcRepositoryBase implements C
                 }
                 company = readCompany(rs);
             }
-            Set<String> branches = new TreeSet<>();
-            try (PreparedStatement branchQuery =
-                         connection.prepareStatement("SELECT branch FROM company_branches WHERE company_id = ?")) {
-                branchQuery.setLong(1, id);
-                try (ResultSet rs = branchQuery.executeQuery()) {
-                    while (rs.next()) {
-                        branches.add(rs.getString("branch"));
-                    }
-                }
-            }
-            return Optional.of(company.withAllowedBranches(branches));
+            return Optional.of(company.withAllowedBranches(readBranches(connection, id)));
         } catch (SQLException e) {
             throw failure("Could not read company " + id, e);
         }
@@ -141,29 +120,8 @@ public final class JdbcCompanyRepository extends JdbcRepositoryBase implements C
     @Override
     public List<Company> findAll() {
         try (Connection connection = connect()) {
-            // Query 1: every company row.
-            List<Company> companies = new ArrayList<>();
-            try (PreparedStatement statement = connection.prepareStatement("SELECT " + COLUMNS + " FROM companies ORDER BY id");
-                 ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    companies.add(readCompany(rs));
-                }
-            }
-            // Query 2: every branch row at once (instead of one extra query per company).
-            Map<Long, Set<String>> branchesByCompany = new HashMap<>();
-            try (PreparedStatement statement = connection.prepareStatement("SELECT company_id, branch FROM company_branches");
-                 ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    long companyId = rs.getLong("company_id");
-                    Set<String> branches = branchesByCompany.get(companyId);
-                    if (branches == null) {
-                        branches = new TreeSet<>();
-                        branchesByCompany.put(companyId, branches);
-                    }
-                    branches.add(rs.getString("branch"));
-                }
-            }
-            // Attach each company's branches.
+            List<Company> companies = readAllCompanyRows(connection);               // query 1: the companies
+            Map<Long, Set<String>> branchesByCompany = readAllBranches(connection); // query 2: every branch row at once
             List<Company> result = new ArrayList<>();
             for (Company company : companies) {
                 Set<String> branches = branchesByCompany.getOrDefault(company.id(), Set.of());
@@ -185,6 +143,69 @@ public final class JdbcCompanyRepository extends JdbcRepositoryBase implements C
         } catch (SQLException e) {
             throw failure("Could not delete company " + id, e);
         }
+    }
+
+    private static int updateCompanyRow(Connection connection, Company company) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(UPDATE)) {
+            fillCompany(statement, company);
+            statement.setLong(6, company.id());
+            return statement.executeUpdate();
+        }
+    }
+
+    private static void deleteBranches(Connection connection, long companyId) throws SQLException {
+        try (PreparedStatement statement =
+                     connection.prepareStatement("DELETE FROM company_branches WHERE company_id = ?")) {
+            statement.setLong(1, companyId);
+            statement.executeUpdate();
+        }
+    }
+
+    /** The branches one company accepts (an empty set means every branch). */
+    private static Set<String> readBranches(Connection connection, long companyId) throws SQLException {
+        Set<String> branches = new TreeSet<>();
+        try (PreparedStatement statement =
+                     connection.prepareStatement("SELECT branch FROM company_branches WHERE company_id = ?")) {
+            statement.setLong(1, companyId);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    branches.add(rs.getString("branch"));
+                }
+            }
+        }
+        return branches;
+    }
+
+    /** Every company row, without branches, ordered by id. */
+    private static List<Company> readAllCompanyRows(Connection connection) throws SQLException {
+        List<Company> companies = new ArrayList<>();
+        try (PreparedStatement statement =
+                     connection.prepareStatement("SELECT " + COLUMNS + " FROM companies ORDER BY id");
+             ResultSet rs = statement.executeQuery()) {
+            while (rs.next()) {
+                companies.add(readCompany(rs));
+            }
+        }
+        return companies;
+    }
+
+    /** Every branch row of every company, grouped by company id. */
+    private static Map<Long, Set<String>> readAllBranches(Connection connection) throws SQLException {
+        Map<Long, Set<String>> branchesByCompany = new HashMap<>();
+        try (PreparedStatement statement =
+                     connection.prepareStatement("SELECT company_id, branch FROM company_branches");
+             ResultSet rs = statement.executeQuery()) {
+            while (rs.next()) {
+                long companyId = rs.getLong("company_id");
+                Set<String> branches = branchesByCompany.get(companyId);
+                if (branches == null) {
+                    branches = new TreeSet<>();
+                    branchesByCompany.put(companyId, branches);
+                }
+                branches.add(rs.getString("branch"));
+            }
+        }
+        return branchesByCompany;
     }
 
     /** Inserts the company row and returns the id the database generated for it. */

@@ -58,14 +58,20 @@ public abstract class JdbcRepositoryBase {
      */
     protected static boolean isDuplicateKey(SQLException error) {
         for (Throwable t = error; t != null; t = t.getCause()) {
-            if (t instanceof SQLException sql) {
-                for (SQLException s = sql; s != null; s = s.getNextException()) {
-                    boolean h2 = "23505".equals(s.getSQLState());
-                    boolean mysql = "23000".equals(s.getSQLState()) && s.getErrorCode() == 1062;
-                    if (h2 || mysql) {
-                        return true;
-                    }
-                }
+            if (t instanceof SQLException sql && hasDuplicateKeyCode(sql)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Looks at one SQLException and at the others chained behind it with getNextException(). */
+    private static boolean hasDuplicateKeyCode(SQLException first) {
+        for (SQLException e = first; e != null; e = e.getNextException()) {
+            boolean h2 = "23505".equals(e.getSQLState());
+            boolean mysql = "23000".equals(e.getSQLState()) && e.getErrorCode() == 1062;
+            if (h2 || mysql) {
+                return true;
             }
         }
         return false;

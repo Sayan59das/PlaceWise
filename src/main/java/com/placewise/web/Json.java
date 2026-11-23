@@ -28,17 +28,24 @@ public final class Json {
         return out.toString();
     }
 
-    /** Pattern matching for switch picks the right branch from the value's type. */
+    /** Looks at the type of the value and writes it the matching way. */
     private static void append(StringBuilder out, Object value) {
-        switch (value) {
-            case null -> out.append("null");
-            case String text -> appendText(out, text);
-            case BigDecimal number -> out.append(number.toPlainString()); // 10.00, never 1.000E+1
-            case Number number -> out.append(number);
-            case Boolean flag -> out.append(flag);
-            case Map<?, ?> map -> appendMap(out, map);
-            case Collection<?> list -> appendList(out, list);
-            default -> appendText(out, value.toString());
+        if (value == null) {
+            out.append("null");
+        } else if (value instanceof String text) {
+            appendText(out, text);
+        } else if (value instanceof BigDecimal decimal) {
+            out.append(decimal.toPlainString()); // 10.00, never 1.000E+1
+        } else if (value instanceof Number number) {
+            out.append(number);
+        } else if (value instanceof Boolean flag) {
+            out.append(flag);
+        } else if (value instanceof Map<?, ?> map) {
+            appendMap(out, map);
+        } else if (value instanceof Collection<?> list) {
+            appendList(out, list);
+        } else {
+            appendText(out, value.toString());
         }
     }
 
@@ -74,19 +81,20 @@ public final class Json {
     private static void appendText(StringBuilder out, String text) {
         out.append('"');
         for (char c : text.toCharArray()) {
-            switch (c) {
-                case '"' -> out.append("\\\"");
-                case '\\' -> out.append("\\\\");
-                case '\n' -> out.append("\\n");
-                case '\r' -> out.append("\\r");
-                case '\t' -> out.append("\\t");
-                default -> {
-                    if (c < 0x20) {
-                        out.append(String.format("\\u%04x", (int) c)); // any other control character
-                    } else {
-                        out.append(c);
-                    }
-                }
+            if (c == '"') {
+                out.append("\\\"");
+            } else if (c == '\\') {
+                out.append("\\\\");
+            } else if (c == '\n') {
+                out.append("\\n");
+            } else if (c == '\r') {
+                out.append("\\r");
+            } else if (c == '\t') {
+                out.append("\\t");
+            } else if (c < 0x20) {
+                out.append(String.format("\\u%04x", (int) c)); // any other control character
+            } else {
+                out.append(c);
             }
         }
         out.append('"');

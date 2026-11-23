@@ -22,6 +22,21 @@ public final class TextReportRenderer extends ReportRenderer {
 
     @Override
     public String render(Table table) {
+        int[] widths = columnWidths(table);
+        StringBuilder out = new StringBuilder();
+        out.append(table.title()).append('\n');
+        out.append("=".repeat(Math.max(table.title().length(), 1))).append("\n\n");
+        appendRow(out, table.headers(), widths);
+        out.append(ruleLine(widths)).append('\n');
+        for (List<String> row : table.rows()) {
+            appendRow(out, row, widths);
+        }
+        out.append('\n').append(table.rows().size()).append(table.rows().size() == 1 ? " row" : " rows").append('\n');
+        return out.toString();
+    }
+
+    /** Every column is as wide as its longest cell, heading included. */
+    private static int[] columnWidths(Table table) {
         int columns = table.headers().size();
         int[] widths = new int[columns];
         for (int c = 0; c < columns; c++) {
@@ -32,23 +47,19 @@ public final class TextReportRenderer extends ReportRenderer {
                 widths[c] = Math.max(widths[c], row.get(c).length());
             }
         }
-        StringBuilder out = new StringBuilder();
-        out.append(table.title()).append('\n');
-        out.append("=".repeat(Math.max(table.title().length(), 1))).append("\n\n");
-        appendRow(out, table.headers(), widths);
+        return widths;
+    }
+
+    /** The line of dashes under the headings, for example {@code ----  -------}. */
+    private static String ruleLine(int[] widths) {
         StringBuilder rule = new StringBuilder();
-        for (int c = 0; c < columns; c++) {
+        for (int c = 0; c < widths.length; c++) {
             if (c > 0) {
                 rule.append("  ");
             }
             rule.append("-".repeat(widths[c]));
         }
-        out.append(rule).append('\n');
-        for (List<String> row : table.rows()) {
-            appendRow(out, row, widths);
-        }
-        out.append('\n').append(table.rows().size()).append(table.rows().size() == 1 ? " row" : " rows").append('\n');
-        return out.toString();
+        return rule.toString();
     }
 
     private static void appendRow(StringBuilder out, List<String> cells, int[] widths) {

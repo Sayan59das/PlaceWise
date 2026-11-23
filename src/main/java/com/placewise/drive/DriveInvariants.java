@@ -6,13 +6,12 @@ import com.placewise.model.ApplicationKey;
 import com.placewise.model.ApplicationStatus;
 import com.placewise.ranking.StudentRanking;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashMap;
 
 /**
  * Properties that must hold after <em>every</em> drive, whatever the thread timing was. Checking
@@ -63,9 +62,19 @@ public final class DriveInvariants {
     }
 
     private static void checkApplications(DriveResult result, EligibilityChecker checker, List<String> violations) {
-        // Group the applications by (student, company) pair.
-        Map<ApplicationKey, List<Application>> byPair = new HashMap<>();
+        Map<ApplicationKey, List<Application>> byPair = groupByPair(result.applications());
         for (Application application : result.applications()) {
+            checkOneApplication(application, byPair.get(application.key()), checker, violations);
+        }
+        for (Map.Entry<ApplicationKey, List<Application>> entry : byPair.entrySet()) {
+            checkOnePair(entry.getKey(), entry.getValue(), violations);
+        }
+    }
+
+    /** Puts the applications of one student at one company into one group (a duplicate lands in the same group). */
+    private static Map<ApplicationKey, List<Application>> groupByPair(List<Application> applications) {
+        Map<ApplicationKey, List<Application>> byPair = new HashMap<>();
+        for (Application application : applications) {
             List<Application> group = byPair.get(application.key());
             if (group == null) {
                 group = new ArrayList<>();
@@ -73,38 +82,37 @@ public final class DriveInvariants {
             }
             group.add(application);
         }
-        for (Application application : result.applications()) {
-            if (application.status() == ApplicationStatus.APPLIED) {
-                violations.add(application + " never reached a final status");
-            }
-            boolean eligible = checker.isEligible(application.student(), application.company());
-            if (LIVE.contains(application.status()) && !eligible) {
-                violations.add(application + " but the student is not eligible");
-            }
-            if (application.status() == ApplicationStatus.REJECTED && eligible
-                    && countLive(byPair.get(application.key())) == 0) {
-                violations.add(application + " was rejected although eligible and not a duplicate");
-            }
+        return byPair;
+    }
+
+    /** Rules for one application; {@code samePair} holds every application of that student at that company. */
+    private static void checkOneApplication(Application application, List<Application> samePair,
+                                            EligibilityChecker checker, List<String> violations) {
+        if (application.status() == ApplicationStatus.APPLIED) {
+            violations.add(application + " never reached a final status");
         }
-        for (Map.Entry<ApplicationKey, List<Application>> entry : byPair.entrySet()) {
-            ApplicationKey key = entry.getKey();
-            int live = countLive(entry.getValue());
-            int selected = 0;
-            for (Application application : entry.getValue()) {
-                if (application.status() == ApplicationStatus.SELECTED) {
-                    selected++;
-                }
-            }
-            if (selected > 1) {
-                violations.add(key.rollNo() + " selected " + selected + " times at company " + key.companyId());
-            }
-            if (live > 1) {
-                violations.add(key.rollNo() + " holds " + live + " live applications at company " + key.companyId());
-            }
+        boolean eligible = checker.isEligible(application.student(), application.company());
+        if (LIVE.contains(application.status()) && !eligible) {
+            violations.add(application + " but the student is not eligible");
+        }
+        if (application.status() == ApplicationStatus.REJECTED && eligible && countLive(samePair) == 0) {
+            violations.add(application + " was rejected although eligible and not a duplicate");
         }
     }
 
-    /** How many applications in the list are still "live" (selected or waitlisted). */
+    /** Rules for all applications of one student at one company. */
+    private static void checkOnePair(ApplicationKey key, List<Application> applications, List<String> violations) {
+        int selected = countWithStatus(applications, ApplicationStatus.SELECTED);
+        int live = countLive(applications);
+        if (selected > 1) {
+            violations.add(key.rollNo() + " selected " + selected + " times at company " + key.companyId());
+        }
+        if (live > 1) {
+            violations.add(key.rollNo() + " holds " + live + " live applications at company " + key.companyId());
+        }
+    }
+
+    /** How many applications in the list are "live": selected, waitlisted, or withdrawn after having been live. */
     private static int countLive(List<Application> applications) {
         int live = 0;
         for (Application application : applications) {
@@ -115,10 +123,21 @@ public final class DriveInvariants {
         return live;
     }
 
+    private static int countWithStatus(List<Application> applications, ApplicationStatus status) {
+        int count = 0;
+        for (Application application : applications) {
+            if (application.status() == status) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /** The boards (what the allocator believes) and the application objects (what students see) must agree. */
     private static void checkBoardsMatchStatuses(DriveResult result, List<String> violations) {
-        Set<Application> onBoardSelected = Collections.newSetFromMap(new IdentityHashMap<>());
-        Set<Application> onBoardWaiting = Collections.newSetFromMap(new IdentityHashMap<>());
+        // Application does not override equals(), so a HashSet tells two applications apart by identity.
+        Set<Application> onBoardSelected = new HashSet<>();
+        Set<Application> onBoardWaiting = new HashSet<>();
         for (BoardSnapshot board : result.boards()) {
             onBoardSelected.addAll(board.selected());
             onBoardWaiting.addAll(board.waitlisted());
