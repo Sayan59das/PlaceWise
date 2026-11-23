@@ -35,6 +35,10 @@ java -jar target/placewise.jar --data-dir mydata           # where audit log, re
 java -jar target/placewise.jar --no-db --web               # the browser version instead of the terminal menu
 java -jar target/placewise.jar --no-db --web --port 8081   # same, on another port (default 8080)
 java -jar target/placewise.jar --help
+
+run-placewise.bat            # Windows: builds if needed, starts the website, opens the browser (Enter stops it)
+run-placewise.bat terminal   # the text menu instead
+run-placewise.bat test       # runs ALL tests first, then starts the website
 ```
 
 Keep `target/lib/` next to `target/placewise.jar`; it holds the MySQL driver.
