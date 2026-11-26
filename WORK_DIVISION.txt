@@ -1,0 +1,223 @@
+WORK DIVISION - 4 MEMBERS
+=========================
+Project : Student Placement Eligibility Checker
+Language: Java, console program, plain text files
+Team    : (You), Ikjot, Sayan, Kabir
+
+There are 7 Java files. They are split below so every file has an owner
+and nobody has to explain code he has not written.
+
+
+MEMBER 1 - YOU
+==============
+Owns: src/Person.java
+      src/Student.java
+
+What is inside:
+- Person is an abstract class with a private name field, a constructor,
+  getName() and an abstract display() method.
+- Student extends Person and implements Comparable<Student>.
+- Student stores rollNo, branch, cgpa and backlogs as private fields.
+- The constructor calls super(name), checks the input and throws
+  InvalidDataException for an empty roll number, empty branch, CGPA outside
+  0 to 10, or negative backlogs.
+- A static counter totalStudents plus getTotalStudents() counts objects.
+- compareTo() puts the higher CGPA first, and uses roll number to break a tie.
+- display() overrides the abstract method and prints one student.
+
+Syllabus points to say:
+- class, object, constructor, this keyword, static variable.
+- inheritance (extends) and the super() call.
+- abstraction (abstract class and abstract method).
+- encapsulation (private fields, public getters).
+- Comparable and natural ordering.
+
+Demo to show:
+- Menu 3 prints every student. This is the "store academic records" feature.
+- Menu 1 with CGPA 15 shows the validation rejecting bad data.
+
+
+MEMBER 2 - IKJOT
+================
+Owns: src/EligibilityRule.java
+      src/Company.java
+
+What is inside:
+- EligibilityRule is an interface with one method:
+  boolean isEligible(Student student);
+- Company implements EligibilityRule and stores name, minCgpa, maxBacklogs.
+- The constructor validates the criteria and throws InvalidDataException.
+- isEligible() is the actual placement rule: the student's CGPA must be at
+  least minCgpa, and backlogs must not be more than maxBacklogs.
+- display() prints the company and its criteria.
+
+Syllabus points to say:
+- interface and implements.
+- polymorphism: Company is used through the EligibilityRule reference inside
+  PlacementManager.checkEligibility().
+- constructor validation with a custom checked exception.
+
+Demo to show:
+- Menu 4 lists the four default companies, and the web page shows the same
+  table with an eligible count for each company.
+- Menu 2 with minimum CGPA 12 is rejected.
+- Menu 6 with Amazon shows who clears CGPA 8.5 with zero backlogs.
+
+
+MEMBER 3 - SAYAN
+================
+Owns: src/InvalidDataException.java
+      src/PlacementManager.java  -> only these two methods:
+                                    loadStudentsFromFile()
+                                    exportReport()
+
+What is inside:
+- InvalidDataException is a custom checked exception with one constructor.
+- loadStudentsFromFile() opens the CSV using FileReader and BufferedReader,
+  reads line by line, splits on comma, trims each part, converts with
+  Double.parseDouble and Integer.parseInt, skips a line that has the wrong
+  number of columns or bad values, reports a duplicate roll number, and
+  closes the reader in a finally block.
+- exportReport() builds the whole report in a StringBuilder, formats the
+  columns with String.format, writes it with FileWriter and closes it in a
+  finally block.
+
+Syllabus points to say:
+- checked exception, custom exception, throw and throws.
+- try / catch / finally and multi-catch
+  (catch (InvalidDataException | NumberFormatException e)).
+- exception propagation: Student and Company throw, Main catches.
+- wrapper classes Integer and Double.
+- StringBuilder and String.format.
+- file handling with FileReader, BufferedReader and FileWriter.
+
+Demo to show:
+- Menu 9 with data/students_bad.csv prints "Skipped bad line" and still
+  loads the good rows.
+- Menu 8 writes report.txt, then open the file.
+
+
+MEMBER 4 - KABIR
+================
+Owns: src/PlacementManager.java  -> storage, add, find, filter, rank
+      src/Main.java
+
+What is inside:
+- ArrayList<Student> for students because we keep them in order, rank them
+  and print them again and again.
+- LinkedHashMap<String, Company> for companies because we look a company up
+  by name and still want a fixed printing order.
+- addStudent() and addCompany() refuse duplicates.
+- findStudent() is a simple loop with equalsIgnoreCase().
+- findCompany() uses the map get().
+- filterEligible() loops over the students, asks the company's rule, then
+  sorts the result with Collections.sort().
+- getRankedStudents() copies the list and sorts it, so the original order
+  is not disturbed.
+- Main holds the menu loop, one small method per option, Scanner input, and
+  readInt()/readDouble() retry loops so a wrong entry never crashes anything.
+
+Syllabus points to say:
+- Collections Framework and why ArrayList and LinkedHashMap were chosen.
+- Map as key value pair, key is the company name.
+- Iterator used while printing the ranked list.
+- Collections.sort() with Comparable.
+- String methods: trim, split, equalsIgnoreCase, compareTo.
+- input validation using a loop and NumberFormatException.
+
+Demo to show:
+- Menu 7 ranking table.
+- Menu 6 eligible list for TCS.
+- Type letters at the menu to show the retry message.
+
+
+THE WEB FRONTEND
+================
+Files: src/WebApp.java
+       web/index.html
+       web/result.html
+       web/style.css
+
+This was added so the same project can also run in a browser. It is a small
+server built with com.sun.net.httpserver.HttpServer, which ships inside the
+JDK, so no library or download is needed.
+
+The HTML is kept in real .html files, not inside the Java code:
+- web/index.html is the main page. It has normal HTML tables, forms and
+  dropdowns, with {{PLACEHOLDER}} words where the data should go.
+- web/result.html is the ELIGIBLE / NOT ELIGIBLE page.
+- web/style.css is the styling.
+
+WebApp reads the .html file, replaces each placeholder with the generated
+rows, and sends the finished page. So the structure of the page is in HTML
+and only the data comes from Java.
+
+It is not a syllabus topic. If the teacher asks, say only this:
+- WebApp starts an HttpServer on port 8080.
+- Each URL is handled by one method: home, check, addStudent, addCompany,
+  export, style.
+- home() reads web/index.html, builds the table rows from the student and
+  company objects, and replaces the {{PLACEHOLDERS}} with them.
+- Files are read with Files.readString / Files.readAllBytes from java.nio.
+- The forms are plain HTML forms that send a GET or POST request.
+- The same Student, Company and PlacementManager classes are used. No
+  business logic was copied, only the input and output changed.
+
+So the honest position is: the Java syllabus part is the 7 original files,
+and WebApp plus the web folder is just an extra way to show the same data.
+The console version still does everything the project requires.
+
+If you want to split the web part too, give it to whoever finishes first.
+WebApp is about 250 lines, and most of it is one method per page.
+
+Extra files for the web version:
+run-web.bat       compiles everything, starts the server, opens the browser
+web/index.html    main page with placeholders
+web/result.html   result page with placeholders
+web/style.css     colours, table borders, form spacing
+
+
+REQUIREMENT MAPPING
+===================
+Store academic records ............ Student class + ArrayList      (You, Kabir)
+Maintain company criteria ......... Company class + LinkedHashMap (Ikjot, Kabir)
+Check CGPA and backlogs ........... Company.isEligible()          (Ikjot)
+Generate eligible student lists ... getEligibleStudents()         (Kabir)
+Rank students by performance ...... compareTo() + Collections.sort (You, Kabir)
+Export placement reports .......... exportReport() + FileWriter   (Sayan)
+
+
+ORDER OF EXPLANATION (about 5 minutes)
+======================================
+1. YOU   - what the project does, then Person and Student.
+2. IKJOT - the interface, Company and the eligibility rule.
+3. KABIR - storage, ranking and the menu.
+4. SAYAN - CSV reading, exceptions and the report file.
+5. Anyone - live demo of the six required features.
+
+
+LIKELY QUESTIONS AND SHORT ANSWERS
+==================================
+Q. Why abstract class Person if there is only one subclass?
+A. It forces every person type to provide display(), and the name is stored
+   in one place. Menu 3 prints a Student through a Person reference.
+
+Q. Why an interface EligibilityRule?
+A. So the manager only depends on isEligible(), not on the Company class.
+
+Q. Why ArrayList and not LinkedList?
+A. We read and sort more than we insert in the middle. ArrayList indexing
+   and sorting are cheaper here.
+
+Q. Why LinkedHashMap and not HashMap?
+A. We need fast lookup by company name and also a stable order in the report.
+
+Q. Difference between checked and unchecked here?
+A. InvalidDataException is checked, so the compiler forces a try or a throws.
+   NumberFormatException is unchecked, so we catch it while reading the CSV.
+
+Q. What if two students have the same CGPA?
+A. compareTo() then compares roll numbers, so the ranking is always stable.
+
+Q. Where is the file closed if an error occurs?
+A. In the finally block, so it closes on both the normal and the error path.

@@ -1,0 +1,52 @@
+STUDENT PLACEMENT REPORT
+Total Students: 8
+Total Companies: 4
+
+RANKED STUDENT LIST
+Rank   Roll No      Name                 Branch     CGPA     Backlogs
+1      106          Priya Nair           IT         9.35     0       
+2      102          Sayan Das            CSE        9.10     0       
+3      101          Ikjot Singh          CSE        8.75     0       
+4      108          Simran Kaur          ECE        8.60     0       
+5      104          Ananya Rao           ECE        8.20     0       
+6      107          Aman Verma           ME         7.80     1       
+7      103          Kabir Sharma         IT         7.40     1       
+8      105          Rohan Mehta          CSE        6.90     2       
+
+COMPANY WISE ELIGIBLE STUDENTS
+
+Company: TCS (Minimum CGPA: 6.0, Maximum Backlogs: 1)
+Eligible Count: 7
+  106  Priya Nair  CGPA: 9.35  Backlogs: 0
+  102  Sayan Das  CGPA: 9.1  Backlogs: 0
+  101  Ikjot Singh  CGPA: 8.75  Backlogs: 0
+  108  Simran Kaur  CGPA: 8.6  Backlogs: 0
+  104  Ananya Rao  CGPA: 8.2  Backlogs: 0
+  107  Aman Verma  CGPA: 7.8  Backlogs: 1
+  103  Kabir Sharma  CGPA: 7.4  Backlogs: 1
+
+Company: Infosys (Minimum CGPA: 7.0, Maximum Backlogs: 0)
+Eligible Count: 5
+  106  Priya Nair  CGPA: 9.35  Backlogs: 0
+  102  Sayan Das  CGPA: 9.1  Backlogs: 0
+  101  Ikjot Singh  CGPA: 8.75  Backlogs: 0
+  108  Simran Kaur  CGPA: 8.6  Backlogs: 0
+  104  Ananya Rao  CGPA: 8.2  Backlogs: 0
+
+Company: Amazon (Minimum CGPA: 8.5, Maximum Backlogs: 0)
+Eligible Count: 4
+  106  Priya Nair  CGPA: 9.35  Backlogs: 0
+  102  Sayan Das  CGPA: 9.1  Backlogs: 0
+  101  Ikjot Singh  CGPA: 8.75  Backlogs: 0
+  108  Simran Kaur  CGPA: 8.6  Backlogs: 0
+
+Company: Wipro (Minimum CGPA: 6.5, Maximum Backlogs: 2)
+Eligible Count: 8
+  106  Priya Nair  CGPA: 9.35  Backlogs: 0
+  102  Sayan Das  CGPA: 9.1  Backlogs: 0
+  101  Ikjot Singh  CGPA: 8.75  Backlogs: 0
+  108  Simran Kaur  CGPA: 8.6  Backlogs: 0
+  104  Ananya Rao  CGPA: 8.2  Backlogs: 0
+  107  Aman Verma  CGPA: 7.8  Backlogs: 1
+  103  Kabir Sharma  CGPA: 7.4  Backlogs: 1
+  105  Rohan Mehta  CGPA: 6.9  Backlogs: 2

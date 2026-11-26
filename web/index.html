@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Student Placement Eligibility Checker</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="box">
+
+<h1>Student Placement Eligibility Checker</h1>
+<p class="nav"><a href="/">Home</a> <a href="/export">Export Report</a></p>
+
+{{MESSAGE}}
+
+<h2>Students</h2>
+<table>
+<tr><th>Roll No</th><th>Name</th><th>Branch</th><th>CGPA</th><th>Backlogs</th></tr>
+{{STUDENT_ROWS}}
+</table>
+<p class="small">Total students: {{STUDENT_COUNT}}</p>
+
+<h2>Companies</h2>
+<table>
+<tr><th>Company</th><th>Minimum CGPA</th><th>Maximum Backlogs</th><th>Eligible</th></tr>
+{{COMPANY_ROWS}}
+</table>
+
+<h2>Check One Student</h2>
+<form method="get" action="/check">
+<p><label>Student</label><select name="roll">
+{{STUDENT_OPTIONS}}
+</select></p>
+<p><label>Company</label><select name="company">
+{{COMPANY_OPTIONS}}
+</select></p>
+<p><button type="submit">Check Eligibility</button></p>
+</form>
+
+<h2>Ranked Students</h2>
+<table>
+<tr><th>Rank</th><th>Roll No</th><th>Name</th><th>CGPA</th><th>Backlogs</th></tr>
+{{RANK_ROWS}}
+</table>
+
+<h2>Eligible Students By Company</h2>
+{{ELIGIBLE_BLOCKS}}
+
+<h2>Add Student</h2>
+<form method="post" action="/addStudent">
+<p><label>Roll No</label><input name="roll" required></p>
+<p><label>Name</label><input name="name" required></p>
+<p><label>Branch</label><input name="branch" required></p>
+<p><label>CGPA</label><input name="cgpa" required></p>
+<p><label>Backlogs</label><input name="backlogs" required></p>
+<p><button type="submit">Add Student</button></p>
+</form>
+
+<h2>Add Company</h2>
+<form method="post" action="/addCompany">
+<p><label>Company Name</label><input name="name" required></p>
+<p><label>Minimum CGPA</label><input name="minCgpa" required></p>
+<p><label>Maximum Backlogs</label><input name="maxBacklogs" required></p>
+<p><button type="submit">Add Company</button></p>
+</form>
+
+<p class="small">Console version: java -cp out Main</p>
+
+</div>
+</body>
+</html>

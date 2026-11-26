@@ -1,0 +1,6 @@
+201,Test One,CSE,8.4,0
+202,Bad Cgpa,CSE,12.5,0
+203,Wrong Columns,IT,7.5
+204,Test Two,ECE,9.0,1
+205,Not a Number,ME,abc,0
+201,Duplicate,IT,7.0,0

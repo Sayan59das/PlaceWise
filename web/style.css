@@ -1,0 +1,111 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 20px;
+    color: #222222;
+}
+
+.box {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 20px 30px;
+    border: 1px solid #cccccc;
+}
+
+h1 {
+    font-size: 22px;
+    margin-top: 0;
+    border-bottom: 2px solid #444444;
+    padding-bottom: 10px;
+}
+
+h2 {
+    font-size: 17px;
+    margin-top: 28px;
+}
+
+h3 {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+th, td {
+    border: 1px solid #cccccc;
+    padding: 6px 8px;
+    text-align: left;
+    font-size: 13px;
+}
+
+th {
+    background-color: #eeeeee;
+}
+
+.nav a {
+    margin-right: 14px;
+}
+
+a {
+    color: #0044aa;
+}
+
+form {
+    border: 1px solid #dddddd;
+    padding: 10px 14px;
+    background-color: #fafafa;
+    margin-bottom: 10px;
+}
+
+label {
+    display: inline-block;
+    width: 150px;
+    font-size: 13px;
+}
+
+input {
+    padding: 4px;
+    width: 200px;
+}
+
+select {
+    padding: 4px;
+}
+
+button {
+    padding: 5px 14px;
+    font-size: 13px;
+}
+
+ul {
+    margin-top: 4px;
+    font-size: 13px;
+}
+
+.msg {
+    background-color: #eef6ee;
+    border: 1px solid #99cc99;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.ok {
+    color: #116611;
+    font-weight: bold;
+}
+
+.no {
+    color: #aa1111;
+    font-weight: bold;
+}
+
+.small {
+    font-size: 12px;
+    color: #666666;
+}
